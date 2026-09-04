@@ -1,0 +1,74 @@
+---
+title: 'Rebuilding a site for search, not for a Lighthouse score'
+description: 'A trekking company lives on organic search. Notes from rebuilding one on server-rendered Next.js, and which changes actually mattered.'
+date: '2026-08-11'
+tags: ['nextjs', 'seo', 'performance']
+draft: false
+---
+
+People plan an Everest trek by searching for it. Not by remembering a brand, not
+through an ad — they type a question and read whatever answers it well. For a
+trekking company, organic search is not a marketing channel, it is the entire
+top of the funnel.
+
+The site I inherited was not built to be found. Rebuilding it was less about
+adding SEO than about removing the reasons a crawler would give up.
+
+## Render on the server, by default
+
+The first decision was the boring one: content is fetched and rendered
+server-side, with static params generated for known routes.
+
+Google can execute JavaScript. It is also under no obligation to do so
+promptly, and it will not wait around for a client-side fetch to resolve before
+deciding what your page is about. On a site where every trip, region and guide
+page is the product, making a crawler work to see a trip description is a
+self-inflicted wound.
+
+The visitor benefits identically. Someone on a 3G connection in a guesthouse
+gets real HTML instead of a spinner.
+
+## Describe the content, do not just display it
+
+A trip page shows a name, a price, a duration, an altitude, a difficulty. To a
+human that is obviously a structured thing. To a crawler it is a div soup unless
+you say otherwise.
+
+JSON-LD structured data and Open Graph metadata are how you say otherwise.
+Adding them is unglamorous — it is mostly filling in fields — and it is what
+earns the richer result treatments that actually change click-through. You are
+not persuading the algorithm; you are answering questions it already asks.
+
+## A sitemap that maintains itself
+
+Hand-written sitemaps rot. Someone adds a trip, nobody updates the XML, and six
+months later a third of the catalogue is undiscovered.
+
+Generating the sitemap dynamically removes the failure mode entirely rather than
+relying on a person to remember. Same principle as any other build artefact: if
+correctness depends on discipline, it will eventually be incorrect.
+
+## Weight is a ranking factor, and photography is heavy
+
+Here is the tension specific to this kind of site: the hero photography *is* the
+product. Nobody books a Himalayan trek from a page of text. The images have to
+be large and they have to be beautiful.
+
+They are also the main thing slowing the page down.
+
+So the work was image optimization and targeted LCP improvement — modern
+formats, correct sizing, and being deliberate about which image is the largest
+paint and making sure it is prioritised. Not "make the images smaller until the
+score goes up", which would have made the site worse at its job.
+
+## What I would do differently
+
+I would spend less time on the score and more time on the questions.
+
+It is genuinely satisfying to watch Lighthouse go green, and Core Web Vitals do
+matter. But a fast page that does not answer what someone searched for still
+loses to a slower page that does. The highest-leverage work on that rebuild was
+structural — making every trip a real, crawlable, well-described document — and
+the performance work was what stopped that structure being wasted.
+
+The order matters. Fast is a multiplier on relevant. On its own it is not much.

@@ -1,0 +1,100 @@
+---
+title: 'What client-side end-to-end encryption actually costs you'
+description: 'Building a desktop authenticator where the server can never read the vault — and the design decisions that follow once you commit to that.'
+date: '2026-08-24'
+tags: ['electron', 'cryptography', 'security']
+draft: false
+---
+
+Most password and 2FA tools ask you to trust the server. Not maliciously — it is
+just the easy architecture. The client sends a secret, the server encrypts it at
+rest, and everyone agrees that is good enough. It usually is.
+
+It stops being good enough when the thing you are storing is a TOTP seed. A seed
+is not a password you can rotate after a breach; it is the long-lived root of
+someone's second factor. If your database leaks and you held the keys, every
+account protected by your app is now protected by nothing.
+
+So on Auth Sync we started from a harder constraint: **the server must never be
+able to read the vault**. Not "does not", not "promises not to" — cannot.
+
+That single decision changes almost every other decision downstream.
+
+## Encryption has to happen before the data exists on the wire
+
+Vault contents and TOTP seeds are sealed with AES-256-GCM on the device. The key
+never leaves. What the backend receives, stores and relays is ciphertext it has
+no means of interpreting.
+
+GCM matters here more than the key size does. It is an authenticated mode, so
+decryption fails loudly if a ciphertext has been altered, rather than handing
+back plausible-looking garbage. When you are dealing with secrets, a corrupted
+value that *looks* valid is worse than an error.
+
+## Sharing is the part that gets hard
+
+A single-user encrypted vault is not difficult. The interesting problem is
+sharing an entry with a colleague when the server cannot see anything.
+
+You cannot ask the backend to "give Alice access" — it has nothing to give. So
+sharing becomes a key-exchange problem. RSA-SHA handles wrapping the entry's key
+for the recipient's public key, and the wrapped key travels alongside the
+ciphertext. Alice's device unwraps it locally with her private key. At no point
+does a plaintext key exist anywhere except on a device that is entitled to it.
+
+The corollary that surprises people: **there is no password reset.** If a user
+loses their key material, the data is gone. That is not a bug, it is the whole
+proposition. What you owe users in exchange is being extremely clear about it,
+and giving them a recovery path *they* control.
+
+## Real-time sync gets easier, not harder
+
+I expected encryption to complicate sync. It simplified it.
+
+Devices hold a persistent WebSocket. When a vault changes, the update is already
+ciphertext by the time it reaches the socket, so the sync layer is a dumb, fast
+pipe — no server-side decryption step in the hot path, no key handling in the
+transport, nothing to get wrong. The server is routing opaque blobs.
+
+There is something clarifying about a backend that structurally cannot leak the
+thing it stores.
+
+## Put the security boundary where the OS already is
+
+The obvious way to unlock a desktop vault is a master password. It is also the
+weakest link: people reuse it, type it in cafés, and it lives in your process
+memory.
+
+Instead, unlocking uses WebAuthn and Windows Hello. The platform keychain and
+the user's biometrics guard the local key material, which means the security
+boundary sits at the operating system — which has hardware-backed storage, a
+threat model far better tested than mine, and a UX users already trust.
+
+On desktop, this is close to free. Not using it is the odd choice.
+
+## Release engineering is part of the security model
+
+This is the bit that gets left out of write-ups.
+
+If you ship cryptography, you need to be able to ship a *fix* to that
+cryptography quickly — and to every platform at once. A vulnerability you cannot
+deploy is barely better than one you have not found.
+
+So Auth Sync's pipeline was treated as a first-class feature rather than
+plumbing: Electron Builder produces installers for Windows, Linux and macOS,
+code-signed on Windows and macOS; GitHub Actions builds and publishes each
+release to S3; the app auto-updates from there.
+
+Code signing is not decoration either. An unsigned security tool asks users to
+click through an OS warning to install it — which is precisely the instinct you
+want them to keep.
+
+## What I would tell someone starting this
+
+Decide early whether the server can read the data, and write it down. It is not
+a detail you can retrofit; it determines your sharing model, your recovery
+story, your sync layer and your support burden.
+
+And if you do commit to it — build the release pipeline before you need it. The
+day you need to ship a crypto fix is not the day to start learning
+`electron-builder`.
