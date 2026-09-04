@@ -1,0 +1,26 @@
+{
+  "auth-sync": {
+    "slug": "auth-sync",
+    "width": 2880,
+    "height": 1800,
+    "blurDataURL": "data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoQAAoAA4BaJaQAA3AA/vLCAAA="
+  },
+  "orbit-chat": {
+    "slug": "orbit-chat",
+    "width": 2880,
+    "height": 1800,
+    "blurDataURL": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADQAQCdASoQAAoAA4BaJQAAU/uAqowPgAD++LpvJeLtTqZqEfYkNvg25PZeW8yKEp+XtP3y6on6CP7TxLbcDXMUBkLlJcr1Lw7+DwWib3GcmxL+Qf8AAA=="
+  },
+  "vrit": {
+    "slug": "vrit",
+    "width": 2880,
+    "height": 1800,
+    "blurDataURL": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAAAQAgCdASoQAAoAA4BaJYgCsAEPSmca/KMgAP72SrQpTvqP8AMLBOPdE7sYUJafmBU8JlsozI3Wd9i/aiByqVypQQVkAWwfouERU3Lt9XCCfASkvEc5K0U76AA="
+  },
+  "everest-thrills": {
+    "slug": "everest-thrills",
+    "width": 2880,
+    "height": 1800,
+    "blurDataURL": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAQCdASoQAAoAA4BaJYgCdAEO56FdJYAA/fxp37ULJvw0sQLvnPdk5aoaMcFvMyAKKel+n73MOWeWvUNeqGpaOIOHNjsdJdbQwAAA"
+  }
+}
